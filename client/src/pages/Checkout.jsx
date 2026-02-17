@@ -25,7 +25,7 @@ function Checkout() {
   // Fetch user's saved addresses from the database
   useEffect(() => {
     if (user?.id) {
-      axios.get(`/api/users/${user.id}`)
+      axios.get(`${import.meta.env.VITE_API_URL}/api/users/${user.id}`)
         .then(res => {
           const userAddresses = res.data.addresses || [];
           setSavedAddresses(userAddresses);
@@ -45,7 +45,7 @@ function Checkout() {
     const formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
     setPaymentInfo({ ...paymentInfo, cardNumber: formattedValue });
   };
-  
+
   const handleAddressSelection = (e) => {
     const value = e.target.value;
     setSelectedAddress(value);
@@ -59,12 +59,12 @@ function Checkout() {
   const handleShippingSubmit = async (e) => {
     e.preventDefault();
     if (selectedAddress === "new") {
-        const newAddress = { street: shippingInfo.street, city: shippingInfo.city, pincode: shippingInfo.pincode };
-        try {
-            await axios.put(`/api/users/${user.id}`, {
-                addresses: [...savedAddresses, newAddress]
-            });
-        } catch (err) { console.error("Failed to save new address", err); }
+      const newAddress = { street: shippingInfo.street, city: shippingInfo.city, pincode: shippingInfo.pincode };
+      try {
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user.id}`, {
+          addresses: [...savedAddresses, newAddress]
+        });
+      } catch (err) { console.error("Failed to save new address", err); }
     }
     setStep(2);
   };
@@ -72,11 +72,11 @@ function Checkout() {
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
     if (paymentMethod === "Card") {
-        const rawCardNumber = paymentInfo.cardNumber.replace(/\s/g, "");
-        if (rawCardNumber.length !== 16) {
-            alert("Please enter a valid 16-digit card number.");
-            return;
-        }
+      const rawCardNumber = paymentInfo.cardNumber.replace(/\s/g, "");
+      if (rawCardNumber.length !== 16) {
+        alert("Please enter a valid 16-digit card number.");
+        return;
+      }
     }
     setStep(3);
   };
@@ -85,48 +85,48 @@ function Checkout() {
     if (!user || !user.id) return;
     setIsPlacingOrder(true);
     const orderDetails = {
-        products: cartItems.map(item => ({
-            productId: item.productId, name: item.name, price: item.price, quantity: item.quantity,
-        })),
-        totalAmount: cartTotal,
-        shippingInfo: { name: shippingInfo.name, address: shippingInfo.street, city: shippingInfo.city, pincode: shippingInfo.pincode },
-        paymentMethod: paymentMethod,
+      products: cartItems.map(item => ({
+        productId: item.productId, name: item.name, price: item.price, quantity: item.quantity,
+      })),
+      totalAmount: cartTotal,
+      shippingInfo: { name: shippingInfo.name, address: shippingInfo.street, city: shippingInfo.city, pincode: shippingInfo.pincode },
+      paymentMethod: paymentMethod,
     };
 
     try {
-        // Step 1: Attempt to place the order
-        await axios.post(`/api/orders/${user.id}`, orderDetails);
+      // Step 1: Attempt to place the order
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders/${user.id}`, orderDetails);
 
-        // Step 2: If successful, show success message and navigate away immediately
-        alert("Order placed successfully!");
-        navigate("/orders");
+      // Step 2: If successful, show success message and navigate away immediately
+      alert("Order placed successfully!");
+      navigate("/orders");
 
-        // Step 3: Attempt to clear the cart silently in the background.
-        // A failure here will not show an error alert to the user.
-        try {
-            await clearCart();
-        } catch (clearCartError) {
-            console.error("Order was placed, but failed to clear cart:", clearCartError);
-        }
+      // Step 3: Attempt to clear the cart silently in the background.
+      // A failure here will not show an error alert to the user.
+      try {
+        await clearCart();
+      } catch (clearCartError) {
+        console.error("Order was placed, but failed to clear cart:", clearCartError);
+      }
 
     } catch (err) {
-        // This will only catch errors from the initial order placement.
-        alert("There was an error placing your order.");
-        console.error("Order placement error:", err);
+      // This will only catch errors from the initial order placement.
+      alert("There was an error placing your order.");
+      console.error("Order placement error:", err);
     } finally {
-        setIsPlacingOrder(false);
+      setIsPlacingOrder(false);
     }
   };
 
   if (cartItems.length === 0 && !isPlacingOrder) {
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center p-4">
-            <div className="absolute inset-0 z-0"><Background /></div>
-            <div className="relative z-10 text-center">
-                <h1 className="text-4xl font-bold text-purple-400 mb-4">Your Cart is Empty</h1>
-                <button onClick={() => navigate('/products')} className="bg-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-700">Go Shopping</button>
-            </div>
+      <div className="relative min-h-screen w-full flex items-center justify-center p-4">
+        <div className="absolute inset-0 z-0"><Background /></div>
+        <div className="relative z-10 text-center">
+          <h1 className="text-4xl font-bold text-purple-400 mb-4">Your Cart is Empty</h1>
+          <button onClick={() => navigate('/products')} className="bg-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-700">Go Shopping</button>
         </div>
+      </div>
     );
   }
 
@@ -137,72 +137,72 @@ function Checkout() {
         <div className="lg:col-span-2">
           <div className="bg-gray-900/50 backdrop-blur-md rounded-2xl shadow-lg p-8">
             <div className="flex items-center justify-between mb-8">
-                {['Shipping', 'Payment', 'Confirm'].map((stepName, index) => (
-                    <React.Fragment key={index}>
-                        <div className="flex items-center"><div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step > index ? 'bg-purple-600' : 'bg-gray-700'}`}>{step > index + 1 ? <CheckIcon /> : index + 1}</div><span className={`ml-3 font-semibold ${step >= index + 1 ? 'text-purple-400' : 'text-gray-500'}`}>{stepName}</span></div>
-                        {index < 2 && <div className="flex-1 h-0.5 bg-gray-700 mx-4"></div>}
-                    </React.Fragment>
-                ))}
+              {['Shipping', 'Payment', 'Confirm'].map((stepName, index) => (
+                <React.Fragment key={index}>
+                  <div className="flex items-center"><div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step > index ? 'bg-purple-600' : 'bg-gray-700'}`}>{step > index + 1 ? <CheckIcon /> : index + 1}</div><span className={`ml-3 font-semibold ${step >= index + 1 ? 'text-purple-400' : 'text-gray-500'}`}>{stepName}</span></div>
+                  {index < 2 && <div className="flex-1 h-0.5 bg-gray-700 mx-4"></div>}
+                </React.Fragment>
+              ))}
             </div>
 
             {step === 1 && (
               <form onSubmit={handleShippingSubmit}>
                 <h2 className="text-2xl font-bold mb-4 text-gray-200">Shipping Information</h2>
                 {savedAddresses.length > 0 && (
-                    <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-gray-300">Select a saved address</h3>
-                        <div className="space-y-2">
-                            {savedAddresses.map((addr, index) => (
-                                <label key={index} className="flex items-center p-3 bg-gray-800/70 rounded-lg cursor-pointer transition-all hover:bg-gray-800"><input type="radio" name="address" value={index} checked={selectedAddress == index} onChange={handleAddressSelection} className="accent-purple-500 w-5 h-5"/><span className="ml-4 text-gray-300">{addr.street}, {addr.city}, {addr.pincode}</span></label>
-                            ))}
-                            <label className="flex items-center p-3 bg-gray-800/70 rounded-lg cursor-pointer transition-all hover:bg-gray-800"><input type="radio" name="address" value="new" checked={selectedAddress === "new"} onChange={handleAddressSelection} className="accent-purple-500 w-5 h-5"/><span className="ml-4 text-gray-200 font-semibold">Enter a new address</span></label>
-                        </div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-2 text-gray-300">Select a saved address</h3>
+                    <div className="space-y-2">
+                      {savedAddresses.map((addr, index) => (
+                        <label key={index} className="flex items-center p-3 bg-gray-800/70 rounded-lg cursor-pointer transition-all hover:bg-gray-800"><input type="radio" name="address" value={index} checked={selectedAddress == index} onChange={handleAddressSelection} className="accent-purple-500 w-5 h-5" /><span className="ml-4 text-gray-300">{addr.street}, {addr.city}, {addr.pincode}</span></label>
+                      ))}
+                      <label className="flex items-center p-3 bg-gray-800/70 rounded-lg cursor-pointer transition-all hover:bg-gray-800"><input type="radio" name="address" value="new" checked={selectedAddress === "new"} onChange={handleAddressSelection} className="accent-purple-500 w-5 h-5" /><span className="ml-4 text-gray-200 font-semibold">Enter a new address</span></label>
                     </div>
+                  </div>
                 )}
                 <div className="space-y-4">
-                    <input type="text" placeholder="Full Name" value={shippingInfo.name} onChange={(e) => setShippingInfo({...shippingInfo, name: e.target.value})} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                    <input type="text" placeholder="Street Address" value={shippingInfo.street} onChange={(e) => setShippingInfo({...shippingInfo, street: e.target.value})} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                    <div className="flex gap-4">
-                        <input type="text" placeholder="City" value={shippingInfo.city} onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                        <input type="text" placeholder="Pincode" value={shippingInfo.pincode} onChange={(e) => setShippingInfo({...shippingInfo, pincode: e.target.value})} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                    </div>
+                  <input type="text" placeholder="Full Name" value={shippingInfo.name} onChange={(e) => setShippingInfo({ ...shippingInfo, name: e.target.value })} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
+                  <input type="text" placeholder="Street Address" value={shippingInfo.street} onChange={(e) => setShippingInfo({ ...shippingInfo, street: e.target.value })} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
+                  <div className="flex gap-4">
+                    <input type="text" placeholder="City" value={shippingInfo.city} onChange={(e) => setShippingInfo({ ...shippingInfo, city: e.target.value })} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
+                    <input type="text" placeholder="Pincode" value={shippingInfo.pincode} onChange={(e) => setShippingInfo({ ...shippingInfo, pincode: e.target.value })} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
+                  </div>
                 </div>
                 <div className="flex gap-4 mt-8">
-                    <button type="button" onClick={() => navigate("/cart")} className="w-full py-3 bg-gray-600 rounded-lg font-semibold hover:bg-gray-700">Back to Cart</button>
-                    <button type="submit" className="w-full py-3 bg-purple-600 rounded-lg font-semibold hover:bg-purple-700">Continue to Payment</button>
+                  <button type="button" onClick={() => navigate("/cart")} className="w-full py-3 bg-gray-600 rounded-lg font-semibold hover:bg-gray-700">Back to Cart</button>
+                  <button type="submit" className="w-full py-3 bg-purple-600 rounded-lg font-semibold hover:bg-purple-700">Continue to Payment</button>
                 </div>
               </form>
             )}
-            
+
             {step === 2 && (
-                <form onSubmit={handlePaymentSubmit}>
-                    <h2 className="text-2xl font-bold mb-6 text-gray-200">Payment Details</h2>
-                    <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-gray-300">Choose Payment Method</h3>
-                        <div className="flex gap-4">
-                            <label className={`flex-1 p-4 rounded-lg cursor-pointer transition-all ${paymentMethod === 'Card' ? 'bg-purple-600 border-2 border-purple-400' : 'bg-gray-800 border-2 border-gray-700'}`}><input type="radio" name="paymentMethod" value="Card" checked={paymentMethod === 'Card'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden"/><span className="font-semibold">Credit / Debit Card</span></label>
-                            <label className={`flex-1 p-4 rounded-lg cursor-pointer transition-all ${paymentMethod === 'Cash on Delivery' ? 'bg-purple-600 border-2 border-purple-400' : 'bg-gray-800 border-2 border-gray-700'}`}><input type="radio" name="paymentMethod" value="Cash on Delivery" checked={paymentMethod === 'Cash on Delivery'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden"/><span className="font-semibold">Cash on Delivery</span></label>
-                        </div>
+              <form onSubmit={handlePaymentSubmit}>
+                <h2 className="text-2xl font-bold mb-6 text-gray-200">Payment Details</h2>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-300">Choose Payment Method</h3>
+                  <div className="flex gap-4">
+                    <label className={`flex-1 p-4 rounded-lg cursor-pointer transition-all ${paymentMethod === 'Card' ? 'bg-purple-600 border-2 border-purple-400' : 'bg-gray-800 border-2 border-gray-700'}`}><input type="radio" name="paymentMethod" value="Card" checked={paymentMethod === 'Card'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" /><span className="font-semibold">Credit / Debit Card</span></label>
+                    <label className={`flex-1 p-4 rounded-lg cursor-pointer transition-all ${paymentMethod === 'Cash on Delivery' ? 'bg-purple-600 border-2 border-purple-400' : 'bg-gray-800 border-2 border-gray-700'}`}><input type="radio" name="paymentMethod" value="Cash on Delivery" checked={paymentMethod === 'Cash on Delivery'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" /><span className="font-semibold">Cash on Delivery</span></label>
+                  </div>
+                </div>
+                {paymentMethod === 'Card' && (
+                  <div className="space-y-4 animate-fadeIn">
+                    <input type="text" placeholder="Card Number (XXXX XXXX XXXX XXXX)" value={paymentInfo.cardNumber} onChange={handleCardNumberChange} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
+                    <div className="flex gap-4">
+                      <input type="text" placeholder="MM / YY" value={paymentInfo.expiry} onChange={(e) => setPaymentInfo({ ...paymentInfo, expiry: e.target.value })} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
+                      <input type="text" placeholder="CVV" value={paymentInfo.cvv} onChange={(e) => setPaymentInfo({ ...paymentInfo, cvv: e.target.value })} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg" />
                     </div>
-                    {paymentMethod === 'Card' && (
-                        <div className="space-y-4 animate-fadeIn">
-                            <input type="text" placeholder="Card Number (XXXX XXXX XXXX XXXX)" value={paymentInfo.cardNumber} onChange={handleCardNumberChange} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                            <div className="flex gap-4">
-                                <input type="text" placeholder="MM / YY" value={paymentInfo.expiry} onChange={(e) => setPaymentInfo({...paymentInfo, expiry: e.target.value})} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                                <input type="text" placeholder="CVV" value={paymentInfo.cvv} onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})} required className="w-full p-3 bg-gray-800/70 border border-gray-700 rounded-lg"/>
-                            </div>
-                        </div>
-                    )}
-                    <div className="flex gap-4 mt-8"><button type="button" onClick={() => setStep(1)} className="w-full py-3 bg-gray-600 rounded-lg font-semibold hover:bg-gray-700">Back to Shipping</button><button type="submit" className="w-full py-3 bg-purple-600 rounded-lg font-semibold hover:bg-purple-700">Review Order</button></div>
-                </form>
+                  </div>
+                )}
+                <div className="flex gap-4 mt-8"><button type="button" onClick={() => setStep(1)} className="w-full py-3 bg-gray-600 rounded-lg font-semibold hover:bg-gray-700">Back to Shipping</button><button type="submit" className="w-full py-3 bg-purple-600 rounded-lg font-semibold hover:bg-purple-700">Review Order</button></div>
+              </form>
             )}
 
             {step === 3 && (
-                <div>
-                    <h2 className="text-2xl font-bold mb-6 text-gray-200">Confirm Your Order</h2>
-                    <div className="space-y-4 text-gray-300"><p><strong>Shipping to:</strong> {shippingInfo.name}, {shippingInfo.street}, {shippingInfo.city} - {shippingInfo.pincode}</p><p><strong>Payment Method:</strong> {paymentMethod === 'Card' ? `Card ending in **** ${paymentInfo.cardNumber.slice(-4)}` : 'Cash on Delivery'}</p>{paymentMethod === 'Card' && <p className="text-green-400 font-semibold"><LockIcon /> Your payment is secure.</p>}</div>
-                    <div className="flex gap-4 mt-8"><button type="button" onClick={() => setStep(2)} className="w-full py-3 bg-gray-600 rounded-lg font-semibold hover:bg-gray-700">Back to Payment</button><button onClick={handleConfirmOrder} disabled={isPlacingOrder} className="w-full py-3 bg-green-600 rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-800">{isPlacingOrder ? 'Placing Order...' : 'Confirm & Place Order'}</button></div>
-                </div>
+              <div>
+                <h2 className="text-2xl font-bold mb-6 text-gray-200">Confirm Your Order</h2>
+                <div className="space-y-4 text-gray-300"><p><strong>Shipping to:</strong> {shippingInfo.name}, {shippingInfo.street}, {shippingInfo.city} - {shippingInfo.pincode}</p><p><strong>Payment Method:</strong> {paymentMethod === 'Card' ? `Card ending in **** ${paymentInfo.cardNumber.slice(-4)}` : 'Cash on Delivery'}</p>{paymentMethod === 'Card' && <p className="text-green-400 font-semibold"><LockIcon /> Your payment is secure.</p>}</div>
+                <div className="flex gap-4 mt-8"><button type="button" onClick={() => setStep(2)} className="w-full py-3 bg-gray-600 rounded-lg font-semibold hover:bg-gray-700">Back to Payment</button><button onClick={handleConfirmOrder} disabled={isPlacingOrder} className="w-full py-3 bg-green-600 rounded-lg font-semibold hover:bg-green-700 disabled:bg-green-800">{isPlacingOrder ? 'Placing Order...' : 'Confirm & Place Order'}</button></div>
+              </div>
             )}
           </div>
         </div>

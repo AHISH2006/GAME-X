@@ -25,7 +25,7 @@ function Profile() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`/api/users/${user.id}`, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user.id}`, {
         name: formData.name,
         mobile: formData.mobile,
       });

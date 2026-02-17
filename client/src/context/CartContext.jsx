@@ -22,7 +22,7 @@ export const CartProvider = ({ children }) => {
 
       // If there IS a user, fetch their specific cart from the backend.
       try {
-        const res = await axios.get(`/api/cart/${user.id}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart/${user.id}`);
         setCartItems(res.data.products || []);
       } catch (err) {
         console.error("Error fetching cart:", err);
@@ -37,7 +37,7 @@ export const CartProvider = ({ children }) => {
     if (!user || !user.id) return false;
     try {
       // Send the request to the user-specific endpoint
-      const res = await axios.post(`/api/cart/${user.id}`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/${user.id}`, {
         productId: product._id || product.id,
         name: product.name,
         description: product.description,
@@ -58,7 +58,7 @@ export const CartProvider = ({ children }) => {
     if (!user || !user.id) return;
     try {
       const res = await axios.put(
-        `/api/cart/${user.id}/${productId}`,
+        `${import.meta.env.VITE_API_URL}/api/cart/${user.id}/${productId}`,
         { quantity: newQuantity }
       );
       setCartItems(res.data.products || []);
@@ -71,10 +71,10 @@ export const CartProvider = ({ children }) => {
     if (!user || !user.id) return;
     try {
       const res = await axios.delete(
-        `/api/cart/${user.id}/${productId}`
+        `${import.meta.env.VITE_API_URL}/api/cart/${user.id}/${productId}`
       );
       setCartItems(res.data.products || []);
-    } catch (err)      {
+    } catch (err) {
       console.error("Error removing product:", err);
     }
   };

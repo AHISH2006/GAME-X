@@ -14,7 +14,7 @@ function ManageAddresses() {
 
   useEffect(() => {
     if (user?.id) {
-      axios.get(`/api/users/${user.id}`)
+      axios.get(`${import.meta.env.VITE_API_URL}/api/users/${user.id}`)
         .then(res => setAddresses(res.data.addresses || []))
         .catch(err => console.error("Could not fetch addresses", err));
     } else {
@@ -39,7 +39,7 @@ function ManageAddresses() {
 
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`/api/users/${user.id}`, { addresses });
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${user.id}`, { addresses });
       setMessage("Addresses saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -65,10 +65,10 @@ function ManageAddresses() {
         <div className="border-t border-gray-700 pt-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-200">Add a New Address</h2>
           <div className="space-y-4">
-            <input type="text" name="street" placeholder="Street Address" value={newAddress.street} onChange={handleNewAddressChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg"/>
+            <input type="text" name="street" placeholder="Street Address" value={newAddress.street} onChange={handleNewAddressChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg" />
             <div className="flex gap-4">
-              <input type="text" name="city" placeholder="City" value={newAddress.city} onChange={handleNewAddressChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg"/>
-              <input type="text" name="pincode" placeholder="Pincode" value={newAddress.pincode} onChange={handleNewAddressChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg"/>
+              <input type="text" name="city" placeholder="City" value={newAddress.city} onChange={handleNewAddressChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg" />
+              <input type="text" name="pincode" placeholder="Pincode" value={newAddress.pincode} onChange={handleNewAddressChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg" />
             </div>
             <button onClick={handleAddNewAddress} className="w-full py-2 bg-blue-600 rounded-lg font-semibold hover:bg-blue-700">Add Address</button>
           </div>

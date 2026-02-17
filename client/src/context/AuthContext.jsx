@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // ✅ DEPLOYMENT CHANGE: Using relative path for API call
-      const res = await axios.post("/api/auth/login", {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         email,
         password,
       });
